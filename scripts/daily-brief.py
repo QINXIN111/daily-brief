@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Daily Brief - Global Social Media & GitHub Trends
-Scrapes GitHub trending, outputs structured JSON for agent to format.
-Social media searches (Twitter/Reddit/YouTube/HN) are done by agent via web_search.
+Daily Brief - 全球科技热点数据采集
+GitHub trending 抓取 + 社交媒体搜索配置
 """
 
 import json
@@ -12,6 +11,51 @@ import urllib.request
 from datetime import datetime, timezone, timedelta
 
 CST = timezone(timedelta(hours=8))
+
+# ─────────────────────────────────────
+# 各板块搜索配置
+# ─────────────────────────────────────
+
+SECTIONS = {
+    "ai": {
+        "label": "AI 前沿",
+        "queries": [
+            "AI new model release announcement site:x.com",
+            "LLM GPT Claude Gemini site:news.ycombinator.com",
+            "artificial intelligence breakthrough site:reddit.com",
+        ],
+    },
+    "tech": {
+        "label": "科技新闻",
+        "queries": [
+            "tech news today site:theverge.com OR site:techcrunch.com",
+            "technology trends today site:reddit.com/r/technology",
+        ],
+    },
+    "product_hunt": {
+        "label": "Product Hunt",
+        "queries": [
+            "site:producthunt.com launched today",
+            "site:producthunt.com top product today",
+        ],
+    },
+    "funding": {
+        "label": "融资新闻",
+        "queries": [
+            "startup funding raised Series site:x.com",
+            "venture capital investment announcement site:news.ycombinator.com",
+        ],
+    },
+    "security": {
+        "label": "安全事件",
+        "queries": [
+            "data breach security incident today site:x.com",
+            "vulnerability CVE critical site:news.ycombinator.com",
+            "cybersecurity attack site:reddit.com/r/netsec",
+        ],
+    },
+}
+
 
 def fetch_github_trending() -> list:
     """Scrape GitHub trending repos (daily)"""
@@ -68,31 +112,15 @@ def main():
         "timestamp": now.isoformat(),
         "date": now.strftime("%Y-%m-%d"),
         "day": now.strftime("%A"),
-        "github": {
-            "trending": fetch_github_trending(),
-        },
-        "social_search_queries": {
-            "twitter": [
-                "crypto Bitcoin today site:twitter.com OR site:x.com",
-                "AI artificial intelligence today site:x.com",
-                "tech news today site:x.com",
-            ],
-            "reddit": [
-                "cryptoocurrency hot today site:reddit.com",
-                "technology top today site:reddit.com",
-                "worldnews today site:reddit.com",
-                "artificial top today site:reddit.com",
-            ],
-            "youtube": [
-                "AI news this week site:youtube.com",
-                "crypto market today site:youtube.com",
-            ],
-            "hacker_news": [
-                "trending site:news.ycombinator.com",
-            ],
-        },
-        "_note": "social_search_queries are for agent to use web_search with freshness=day"
+        "github": {"trending": fetch_github_trending()},
+        "sections": {},
     }
+
+    for key, section in SECTIONS.items():
+        result["sections"][key] = {
+            "label": section["label"],
+            "queries": section["queries"],
+        }
 
     out = json.dumps(result, ensure_ascii=False, indent=2)
     sys.stdout.buffer.write(out.encode("utf-8"))

@@ -1,83 +1,95 @@
 ---
 name: daily-brief
-description: Generate a daily information briefing from global social media platforms. Use when user says "daily brief", "今日汇总", "日报", "热点汇总", or asks for a summary of what's happening on Twitter/X, Reddit, YouTube, etc. Also use during heartbeats when HEARTBEAT.md requests a daily check.
+description: Generate a daily information briefing from global social media and tech platforms. Use when user says "daily brief", "今日汇总", "日报", "热点汇总", or asks for a summary of what's happening on Twitter/X, Reddit, YouTube, Hacker News, Product Hunt, AI news, etc. Also use during heartbeats when HEARTBEAT.md requests a daily check.
 ---
 
-# Daily Brief - Global Social Media
+# Daily Brief - 全球科技热点汇总
 
-Collect and summarize trending topics from major overseas social media platforms.
+收集全球主流社交媒体和科技平台的热门内容，生成简洁的中文日报。
 
 ## Workflow
 
-### Step 1: Collect Data
-
-Run the script to get GitHub trends (the only source that needs scraping):
+### Step 1: 运行数据采集脚本
 
 ```bash
-python scripts/daily-brief.py --github
+python scripts/daily-brief.py
 ```
 
-### Step 2: Search Social Media
+脚本输出 JSON，包含：
+- GitHub Trending 项目列表
+- 各板块的搜索关键词配置
 
-Use `web_search` tool to search each platform for hot topics. Search queries (in order):
+### Step 2: 按板块搜索（用 web_search 工具）
 
-1. **Twitter/X** — search `site:twitter.com OR site:x.com` for each topic:
-   - `crypto Bitcoin today`
-   - `AI artificial intelligence today`
-   - `"Trump" OR "White House"` (politics)
-   - `tech news today`
-   
-2. **Reddit** — search `site:reddit.com`:
-   - `r/cryptocurrency hot today`
-   - `r/technology top today`
-   - `r/worldnews today`
-   - `r/artificial top`
+按以下顺序搜索，每个搜索加 `freshness="day"`：
 
-3. **YouTube** — search `site:youtube.com`:
-   - `AI news this week`
-   - `crypto market today`
+**1. 🤖 AI 前沿**
+- `AI new model release announcement site:x.com`
+- `LLM GPT Claude Gemini site:news.ycombinator.com`
+- `artificial intelligence breakthrough site:reddit.com`
 
-4. **Hacker News** — search `site:news.ycombinator.com`:
-   - trending topics
+**2. 🔥 科技新闻**
+- `tech news today site:theverge.com OR site:techcrunch.com`
+- `科技新闻 today site:reddit.com/r/technology`
 
-Use freshness="day" for all searches to get today's results.
+**3. 📱 Product Hunt**
+- `site:producthunt.com launched today`
+- `site:producthunt.com top product today`
 
-### Step 3: Format Brief
+**4. 💰 融资新闻**
+- `startup funding raised Series site:x.com`
+- `venture capital investment announcement site:news.ycombinator.com`
 
-Combine all sources into a structured report:
+**5. 🛡️ 安全事件**
+- `data breach security incident today site:x.com`
+- `vulnerability CVE critical site:news.ycombinator.com`
+- `hacker attack cybersecurity site:reddit.com/r/netsec`
+
+**6. 🔥 GitHub Trending**（脚本已抓取，直接用）
+
+### Step 3: 汇总格式
 
 ```
-📊 Daily Brief - YYYY-MM-DD (Day)
+📊 Daily Brief - YYYY-MM-DD (星期X)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🐦 Twitter/X Hot Topics
-  • [topic] - brief summary
+🤖 AI 前沿
+  • [标题] — 一句话摘要
   ...
 
-🔴 Reddit Highlights  
-  r/subreddit - [title] - brief
+📰 科技新闻
+  • [标题] — 一句话摘要
   ...
 
-🎬 YouTube Picks
-  [channel] - [video title]
+📱 Product Hunt 精选
+  • [产品名] — 功能描述 [今日第X]
+  ...
+
+💰 融资动态
+  • [公司] 融资$XXM [轮次] — 投资方
+  ...
+
+🛡️ 安全事件
+  • [事件] — 影响范围
   ...
 
 🔥 GitHub Trending
-  • owner/repo [lang] ⭐N - description
+  • owner/repo [语言] ⭐今日+数 — 描述
   ...
 
-📰 Summary (3 bullet points)
-  • key trend 1
-  • key trend 2
-  • key trend 3
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📰 今日速览（3要点）
+  • 关键趋势 1
+  • 关键趋势 2
+  • 关键趋势 3
 ```
 
 ## Guidelines
 
-- Keep total brief under 2000 characters
-- Focus on what's actually trending, not random posts
-- Prioritize: crypto/AI > tech > world news (match user interests)
-- Skip low-engagement / clickbait content
-- Include a 3-point summary at the end
-- Use language: Chinese (简中)
+- 总量控制在 2500 字符以内
+- 每板块 3-5 条精选，跳过低质量/标题党
+- 优先级：AI > 科技 > 融资 > 安全 > Product Hunt
+- 描述用中文，项目/产品名保留英文
+- 结尾 3 条速览总结当天最重要的趋势
